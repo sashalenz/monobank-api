@@ -3,7 +3,6 @@
 namespace Sashalenz\MonobankApi\ResponseData;
 
 use Illuminate\Support\Carbon;
-use Sashalenz\MonobankApi\Enums\Currency;
 use Spatie\LaravelData\Attributes\WithCast;
 use Spatie\LaravelData\Casts\DateTimeInterfaceCast;
 use Spatie\LaravelData\Data;
@@ -20,7 +19,7 @@ class StatementResponse extends Data
         public bool $hold,
         public int $amount,
         public int $operationAmount,
-        public Currency $currencyCode,
+        public int $currencyCode,
         public int $commissionRate,
         public int $cashbackAmount,
         public int $balance,

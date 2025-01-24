@@ -3,7 +3,6 @@
 namespace Sashalenz\MonobankApi\ResponseData;
 
 use Illuminate\Support\Carbon;
-use Sashalenz\MonobankApi\Enums\Currency;
 use Spatie\LaravelData\Attributes\WithCast;
 use Spatie\LaravelData\Casts\DateTimeInterfaceCast;
 use Spatie\LaravelData\Data;
@@ -11,8 +10,8 @@ use Spatie\LaravelData\Data;
 class CurrencyResponse extends Data
 {
     public function __construct(
-        public Currency $currencyCodeA,
-        public Currency $currencyCodeB,
+        public int $currencyCodeA,
+        public int $currencyCodeB,
         #[WithCast(DateTimeInterfaceCast::class, format: 'timestamp')]
         public Carbon $date,
         public float $rateSell,

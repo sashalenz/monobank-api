@@ -2,6 +2,7 @@
 
 namespace Sashalenz\MonobankApi\ApiModels;
 
+use Illuminate\Support\Collection;
 use Sashalenz\MonobankApi\Exceptions\MonobankApiException;
 use Sashalenz\MonobankApi\ResponseData\CurrencyResponse;
 
@@ -12,9 +13,9 @@ class Bank extends BaseModel
     /**
      * @throws MonobankApiException
      */
-    public function settings(): CurrencyResponse
+    public function currency(): Collection
     {
-        return CurrencyResponse::from(
+        return CurrencyResponse::collect(
             $this
                 ->setMethod(__FUNCTION__)
                 ->get()

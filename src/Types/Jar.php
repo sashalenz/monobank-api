@@ -2,7 +2,6 @@
 
 namespace Sashalenz\MonobankApi\Types;
 
-use Sashalenz\MonobankApi\Enums\Currency;
 use Spatie\LaravelData\Data;
 
 class Jar extends Data
@@ -12,7 +11,7 @@ class Jar extends Data
         public string $sendId,
         public string $title,
         public string $description,
-        public Currency $currencyCode,
+        public int $currencyCode,
         public int $balance,
         public int $goal,
     ) {}
