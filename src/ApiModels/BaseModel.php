@@ -5,12 +5,15 @@ namespace Sashalenz\MonobankApi\ApiModels;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Traits\Conditionable;
 use Sashalenz\MonobankApi\Exceptions\MonobankApiException;
 use Sashalenz\MonobankApi\Request;
 use Spatie\LaravelData\Data;
 
 abstract class BaseModel
 {
+    use Conditionable;
+
     private bool $canBeCached = false;
 
     private int $cacheSeconds = -1;

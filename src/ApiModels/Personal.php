@@ -40,7 +40,7 @@ class Personal extends BaseModel
     /**
      * @throws MonobankApiException
      */
-    public function statement(string $account, int $dateFrom, int $dateTo): string
+    public function statement(string $account, int $dateFrom, ?int $dateTo = null): string
     {
         if ($dateFrom > $dateTo) {
             throw new MonobankApiException('Date from must be less than date to');
@@ -55,7 +55,10 @@ class Personal extends BaseModel
                 ->setMethod(__FUNCTION__)
                 ->setMethod($account)
                 ->setMethod((string) $dateFrom)
-                ->setMethod((string) $dateTo)
+                ->when(
+                    !is_null($dateTo),
+                    fn ($request) => $request->setMethod((string) $dateTo),
+                )
                 ->get()
         );
     }

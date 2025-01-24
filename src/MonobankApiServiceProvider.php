@@ -16,6 +16,7 @@ class MonobankApiServiceProvider extends PackageServiceProvider
          */
         $package
             ->name('monobank-api')
+            ->hasRoute('web')
             ->hasConfigFile();
     }
 }
