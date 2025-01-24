@@ -56,7 +56,7 @@ class Personal extends BaseModel
                 ->setMethod($account)
                 ->setMethod((string) $dateFrom)
                 ->when(
-                    !is_null($dateTo),
+                    ! is_null($dateTo),
                     fn ($request) => $request->setMethod((string) $dateTo),
                 )
                 ->get()
