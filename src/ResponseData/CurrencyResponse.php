@@ -18,5 +18,5 @@ class CurrencyResponse extends Data
         public float $rateSell,
         public float $rateBuy,
         public float $rateCross,
-    ) { }
+    ) {}
 }

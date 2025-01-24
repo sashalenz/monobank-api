@@ -29,12 +29,12 @@ class Personal extends BaseModel
     public function webhook(string $webHookUrl): bool
     {
         return $this
-                ->setMethod(__FUNCTION__)
-                ->setParams(new WebhookRequest(
-                    webHookUrl: $webHookUrl
-                ))
-                ->request()
-                ->getStatusCode() === 200;
+            ->setMethod(__FUNCTION__)
+            ->setParams(new WebhookRequest(
+                webHookUrl: $webHookUrl
+            ))
+            ->request()
+            ->getStatusCode() === 200;
     }
 
     /**
@@ -54,8 +54,8 @@ class Personal extends BaseModel
             $this
                 ->setMethod(__FUNCTION__)
                 ->setMethod($account)
-                ->setMethod((string)$dateFrom)
-                ->setMethod((string)$dateTo)
+                ->setMethod((string) $dateFrom)
+                ->setMethod((string) $dateTo)
                 ->get()
         );
     }

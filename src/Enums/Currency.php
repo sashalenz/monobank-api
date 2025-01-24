@@ -8,8 +8,7 @@ enum Currency: int
 
     public function code(): string
     {
-        return match($this)
-        {
+        return match ($this) {
             self::UAH => 'UAH'
         };
     }

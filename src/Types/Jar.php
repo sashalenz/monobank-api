@@ -2,8 +2,6 @@
 
 namespace Sashalenz\MonobankApi\Types;
 
-use Sashalenz\MonobankApi\Enums\AccountType;
-use Sashalenz\MonobankApi\Enums\CashbackType;
 use Sashalenz\MonobankApi\Enums\Currency;
 use Spatie\LaravelData\Data;
 

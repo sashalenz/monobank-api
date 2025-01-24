@@ -12,7 +12,7 @@ class Bank extends BaseModel
     /**
      * @throws MonobankApiException
      */
-    public function settings():CurrencyResponse
+    public function settings(): CurrencyResponse
     {
         return CurrencyResponse::from(
             $this

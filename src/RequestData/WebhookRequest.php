@@ -8,5 +8,5 @@ class WebhookRequest extends Data
 {
     public function __construct(
         public string $webHookUrl,
-    ){ }
+    ) {}
 }

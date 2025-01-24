@@ -27,7 +27,7 @@ abstract class BaseModel
     {
         return [
             'User-Agent' => 'CRM',
-            'X-Token' => $this->token
+            'X-Token' => $this->token,
         ];
     }
 

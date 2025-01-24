@@ -30,5 +30,5 @@ class StatementResponse extends Data
         public ?string $counterEdrpou,
         public ?string $counterIban,
         public ?string $counterName,
-    ) { }
+    ) {}
 }

@@ -4,7 +4,6 @@ namespace Sashalenz\MonobankApi;
 
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Client\Response;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Sashalenz\MonobankApi\Exceptions\MonobankApiException;
