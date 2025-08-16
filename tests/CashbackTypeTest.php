@@ -11,4 +11,3 @@ it('contains expected cashback types', function () {
         'Miles',
     ]);
 });
-

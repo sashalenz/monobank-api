@@ -14,4 +14,3 @@ it('contains expected account types', function () {
         'yellow',
     ]);
 });
-
