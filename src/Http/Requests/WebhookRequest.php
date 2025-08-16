@@ -3,14 +3,16 @@
 namespace Sashalenz\MonobankApi\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Config;
 
 class WebhookRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return array_key_exists(
+        return in_array(
             $this->ip(),
-            $this->allowedIPs()
+            $this->allowedIPs(),
+            true
         );
     }
 
@@ -26,6 +28,6 @@ class WebhookRequest extends FormRequest
 
     private function allowedIPs(): array
     {
-        return [];
+        return Config::get('monobank-api.webhook_ips', []);
     }
 }
