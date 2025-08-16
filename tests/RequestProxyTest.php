@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Client\Request as HttpRequest;
+use Illuminate\Support\Facades\Http;
 use Sashalenz\MonobankApi\Request as ApiRequest;
 
 it('passes proxy option to HTTP client', function () {
