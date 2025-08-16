@@ -1,11 +1,13 @@
-# This is my package monobank-api
+# Monobank API client for PHP
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/sashalenz/monobank-api.svg?style=flat-square)](https://packagist.org/packages/sashalenz/monobank-api)
 [![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/sashalenz/monobank-api/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/sashalenz/monobank-api/actions?query=workflow%3Arun-tests+branch%3Amain)
 [![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/sashalenz/monobank-api/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/sashalenz/monobank-api/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
 [![Total Downloads](https://img.shields.io/packagist/dt/sashalenz/monobank-api.svg?style=flat-square)](https://packagist.org/packages/sashalenz/monobank-api)
 
-This is where your description should go. Limit it to a paragraph or two. Consider adding a small example.
+A lightweight and expressive PHP wrapper for the [Monobank API](https://api.monobank.ua/).
+It provides simple methods for accessing public banking information and personal
+account data.
 
 ## Installation
 
@@ -30,9 +32,49 @@ return [
 
 ## Usage
 
+This package provides helpers for all Monobank API requests:
+
+- `MonobankApi::bank()->currency()` – get current currency exchange rates.
+- `MonobankApi::personal()->clientInfo()` – retrieve information about accounts and cards.
+- `MonobankApi::personal()->webhook($url)` – register a webhook URL for transaction updates.
+- `MonobankApi::personal()->statement($account, $dateFrom, $dateTo = null)` – fetch a statement for a specific account and period.
+
+### Examples
+
+#### Currency rates
+Retrieve public exchange rates without authentication.
+
 ```php
-$monobankApi = new Sashalenz\MonobankApi();
-echo $monobankApi->echoPhrase('Hello, Sashalenz!');
+use Sashalenz\MonobankApi\MonobankApi;
+
+$rates = MonobankApi::bank()->currency();
+
+foreach ($rates as $rate) {
+    echo $rate->currencyCodeA . ' => ' . $rate->rateBuy . PHP_EOL;
+}
+```
+
+#### Client information
+Get information about your accounts and cards.
+
+```php
+$info = MonobankApi::personal()->token($token)->clientInfo();
+```
+
+#### Register webhook
+Configure a webhook to receive transaction updates.
+
+```php
+MonobankApi::personal()->token($token)->webhook('https://example.com/monobank');
+```
+
+#### Account statement
+Fetch the statement for an account within a given period.
+
+```php
+$statement = MonobankApi::personal()
+    ->token($token)
+    ->statement($accountId, $dateFrom, $dateTo);
 ```
 
 ## Testing
