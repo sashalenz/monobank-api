@@ -42,11 +42,11 @@ class Personal extends BaseModel
      */
     public function statement(string $account, int $dateFrom, ?int $dateTo = null): string
     {
-        if ($dateFrom > $dateTo) {
+        if (! is_null($dateTo) && $dateFrom > $dateTo) {
             throw new MonobankApiException('Date from must be less than date to');
         }
 
-        if ($dateTo > $dateFrom + 2682000) {
+        if (! is_null($dateTo) && $dateTo > $dateFrom + 2682000) {
             throw new MonobankApiException('Date to must be less than 31 days');
         }
 

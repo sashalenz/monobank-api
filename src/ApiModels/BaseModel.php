@@ -111,6 +111,7 @@ abstract class BaseModel
             cache: $this->canBeCached
                 ? $this->cacheSeconds
                 : null,
+            proxy: $this->proxy,
         );
 
         return $request->make();
