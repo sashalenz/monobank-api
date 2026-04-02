@@ -2,8 +2,9 @@
 
 namespace Sashalenz\MonobankApi\ApiModels;
 
+use Illuminate\Support\Collection;
 use Sashalenz\MonobankApi\Exceptions\MonobankApiException;
-use Sashalenz\MonobankApi\RequestData\WebhookRequest;
+use Sashalenz\MonobankApi\RequestData\WebhookData;
 use Sashalenz\MonobankApi\ResponseData\ClientInfoResponse;
 use Sashalenz\MonobankApi\ResponseData\StatementResponse;
 
@@ -30,7 +31,7 @@ class Personal extends BaseModel
     {
         return $this
             ->setMethod(__FUNCTION__)
-            ->setParams(new WebhookRequest(
+            ->setParams(new WebhookData(
                 webHookUrl: $webHookUrl
             ))
             ->request()
@@ -40,7 +41,7 @@ class Personal extends BaseModel
     /**
      * @throws MonobankApiException
      */
-    public function statement(string $account, int $dateFrom, ?int $dateTo = null): string
+    public function statement(string $account, int $dateFrom, ?int $dateTo = null): Collection
     {
         if (! is_null($dateTo) && $dateFrom > $dateTo) {
             throw new MonobankApiException('Date from must be less than date to');

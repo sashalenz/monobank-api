@@ -2,6 +2,7 @@
 
 namespace Sashalenz\MonobankApi;
 
+use Sashalenz\MonobankApi\ApiModels\Acquiring;
 use Sashalenz\MonobankApi\ApiModels\Bank;
 use Sashalenz\MonobankApi\ApiModels\Personal;
 
@@ -15,5 +16,10 @@ class MonobankApi
     public static function personal(): Personal
     {
         return new Personal;
+    }
+
+    public static function acquiring(): Acquiring
+    {
+        return new Acquiring;
     }
 }

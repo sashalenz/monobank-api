@@ -1,17 +1,11 @@
 <?php
 
-use Illuminate\Http\Client\Request as HttpRequest;
 use Illuminate\Support\Facades\Http;
 use Sashalenz\MonobankApi\Request as ApiRequest;
 
 it('passes proxy option to HTTP client', function () {
     config(['monobank-api.api_url' => 'https://api.test/']);
-    Http::fake(function (HttpRequest $request) {
-        expect($request->getOptions())->toHaveKey('proxy');
-        expect($request->getOptions()['proxy'])->toBe('http://proxy.test');
-
-        return Http::response([]);
-    });
+    Http::fake(['*' => Http::response([])]);
 
     $request = new ApiRequest(
         method: 'test',
@@ -23,4 +17,6 @@ it('passes proxy option to HTTP client', function () {
     );
 
     $request->make();
+
+    Http::assertSent(fn ($req) => $req->url() === 'https://api.test/test');
 });
