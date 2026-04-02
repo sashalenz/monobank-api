@@ -5,7 +5,6 @@ use Illuminate\Support\Facades\Http;
 use Sashalenz\MonobankApi\Enums\PaymentType;
 use Sashalenz\MonobankApi\Exceptions\MonobankApiException;
 use Sashalenz\MonobankApi\MonobankApi;
-use Sashalenz\MonobankApi\RequestData\BasketItem;
 use Sashalenz\MonobankApi\RequestData\InvoiceData;
 use Sashalenz\MonobankApi\RequestData\MerchantPaymInfo;
 use Sashalenz\MonobankApi\ResponseData\InvoiceResponse;
@@ -53,28 +52,22 @@ it('creates an invoice with full merchant payment info', function () {
 
     $response = MonobankApi::acquiring()
         ->token('test-merchant-token')
-        ->createInvoice(new InvoiceData(
-            amount: 4200,
-            ccy: 980,
-            merchantPaymInfo: new MerchantPaymInfo(
-                reference: 'order-123',
-                destination: 'Покупка щастя',
-                comment: 'Test order',
-                basketOrder: BasketItem::collect([
-                    [
-                        'name' => 'Табуретка',
-                        'qty' => 2,
-                        'sum' => 2100,
-                        'total' => 4200,
-                        'unit' => 'шт.',
-                    ],
-                ]),
-            ),
-            redirectUrl: 'https://example.com/result',
-            webHookUrl: 'https://example.com/webhook',
-            validity: 3600,
-            paymentType: PaymentType::DEBIT,
-        ));
+        ->createInvoice(InvoiceData::from([
+            'amount' => 4200,
+            'ccy' => 980,
+            'merchantPaymInfo' => [
+                'reference' => 'order-123',
+                'destination' => 'Покупка щастя',
+                'comment' => 'Test order',
+                'basketOrder' => [
+                    ['name' => 'Табуретка', 'qty' => 2, 'sum' => 2100, 'total' => 4200, 'unit' => 'шт.'],
+                ],
+            ],
+            'redirectUrl' => 'https://example.com/result',
+            'webHookUrl' => 'https://example.com/webhook',
+            'validity' => 3600,
+            'paymentType' => 'debit',
+        ]));
 
     expect($response->invoiceId)->toBe('p2_full');
 });

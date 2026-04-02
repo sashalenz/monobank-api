@@ -33,14 +33,17 @@ src/
 ├── Enums/
 │   ├── AccountType.php            # black, white, platinum, iron, fop, yellow
 │   ├── CashbackType.php           # None, UAH, Miles
-│   └── PaymentType.php            # debit, hold
+│   ├── PaymentType.php            # debit, hold
+│   └── InvoiceStatus.php          # created, processing, hold, success, failure, reversed, expired
 ├── Exceptions/
 │   └── MonobankApiException.php   # Single custom exception for all API errors
 ├── Http/
 │   ├── Controllers/
-│   │   └── WebhookController.php  # Receives incoming Monobank webhook payloads
+│   │   ├── WebhookController.php          # Receives personal account webhook payloads
+│   │   └── AcquiringWebhookController.php # Receives acquiring payment status webhooks
 │   └── Requests/
-│       └── WebhookRequest.php     # Form request — validates webhook IP allowlist
+│       ├── WebhookRequest.php             # Form request — validates personal webhook IP + structure
+│       └── AcquiringWebhookRequest.php    # Form request — validates acquiring webhook IP + structure
 ├── RequestData/
 │   ├── WebhookData.php            # DTO for registering a personal webhook URL
 │   ├── InvoiceData.php            # DTO for POST /api/merchant/invoice/create
@@ -52,7 +55,8 @@ src/
 │   ├── CurrencyResponse.php       # Exchange rate DTO (rateSell/rateBuy/rateCross are ?float)
 │   ├── ClientInfoResponse.php     # Client info + Account + Jar collections
 │   ├── StatementResponse.php      # Transaction statement DTO
-│   └── InvoiceResponse.php        # Acquiring invoice response (invoiceId, pageUrl)
+│   ├── InvoiceResponse.php        # Acquiring invoice response (invoiceId, pageUrl)
+│   └── AcquiringWebhookData.php   # Incoming acquiring webhook payload DTO
 ├── Types/
 │   ├── Account.php                # Account type (balance, IBAN, cards, limits)
 │   └── Jar.php                    # Jar/savings goal type
@@ -127,10 +131,17 @@ Key `BaseModel` internals:
 - `RequestData/SaveCardData` — card tokenisation options (`saveCard`, `walletId`)
 - Do **not** confuse `RequestData/WebhookData` with `Http/Requests/WebhookRequest` (that is a Laravel FormRequest for *incoming* webhooks)
 
-### Webhook Flow
-1. Monobank POSTs to the route registered in `routes/web.php` (key: `MONOBANK_WEBHOOK_KEY`)
-2. `WebhookRequest` form request validates the source IP against `MONOBANK_WEBHOOK_IPS`
-3. `WebhookController` receives the validated payload and logs it via `logger()->info()`
+### Webhook Flows
+
+**Personal account statements** (`MONOBANK_WEBHOOK_KEY`, default `webhook`):
+1. Monobank POSTs `{"type": "StatementItem", "data": {"account": "...", "statementItem": {...}}}`
+2. `WebhookRequest` validates the source IP against `MONOBANK_WEBHOOK_IPS`
+3. `WebhookController` logs it via `logger()->info()`
+
+**Acquiring payment status** (`MONOBANK_ACQUIRING_WEBHOOK_KEY`, default `acquiring-webhook`):
+1. Monobank POSTs `{"invoiceId": "...", "status": "success", "amount": ..., "ccy": ...}`
+2. `AcquiringWebhookRequest` validates IP and required fields
+3. `AcquiringWebhookController` creates `AcquiringWebhookData` DTO and logs key fields
 
 ## Configuration
 
@@ -140,8 +151,9 @@ Published via `php artisan vendor:publish`. Key environment variables:
 |---|---|---|
 | `MONOBANK_API_URL` | `https://api.monobank.ua/` | Base API URL |
 | `MONOBANK_WEBHOOK_DOMAIN` | — | Domain for webhook URL construction |
-| `MONOBANK_WEBHOOK_KEY` | `webhook` | Route key/slug for the webhook endpoint |
-| `MONOBANK_WEBHOOK_IPS` | `` | Comma-separated IP allowlist for webhook requests |
+| `MONOBANK_WEBHOOK_KEY` | `webhook` | Route slug for the personal account webhook |
+| `MONOBANK_ACQUIRING_WEBHOOK_KEY` | `acquiring-webhook` | Route slug for the acquiring payment webhook |
+| `MONOBANK_WEBHOOK_IPS` | `` | Comma-separated IP allowlist for all webhook requests |
 
 ## Code Conventions
 
@@ -152,6 +164,34 @@ Published via `php artisan vendor:publish`. Key environment variables:
 - **Exceptions** — always throw `MonobankApiException`; document with `@throws` PHPDoc
 - **Fluent methods** return `self`; terminal methods return typed values (`Collection`, DTO, `bool`)
 - **Conditionable trait** — use `->when()` for conditional branching in builders
+
+### Spatie Data v4 — Constructing Nested DTOs
+
+When constructing DTOs with nested typed collections (`DataCollection`), use `::from()` rather than `new ClassName()`. Spatie Data will auto-cast arrays to the correct collection type:
+
+```php
+// ✅ Correct — ::from() handles casting of nested arrays
+InvoiceData::from([
+    'amount' => 4200,
+    'merchantPaymInfo' => [
+        'reference' => 'order-123',
+        'basketOrder' => [
+            ['name' => 'Item', 'qty' => 1, 'sum' => 4200, 'total' => 4200],
+        ],
+    ],
+]);
+
+// ❌ Wrong — passing a raw array to a DataCollection constructor parameter fails
+new MerchantPaymInfo(basketOrder: [['name' => 'Item', ...]]);
+```
+
+`TestCase` must explicitly register `LaravelDataServiceProvider` — auto-discovery does not initialise the `data` config in time:
+```php
+protected function getPackageProviders($app): array
+{
+    return [LaravelDataServiceProvider::class, MonobankApiServiceProvider::class];
+}
+```
 
 ## Testing
 
