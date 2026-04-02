@@ -1,11 +1,11 @@
 <?php
 
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Sashalenz\MonobankApi\Enums\PaymentType;
 use Sashalenz\MonobankApi\Exceptions\MonobankApiException;
 use Sashalenz\MonobankApi\MonobankApi;
 use Sashalenz\MonobankApi\RequestData\BasketItem;
-use Sashalenz\MonobankApi\RequestData\Discount;
 use Sashalenz\MonobankApi\RequestData\InvoiceData;
 use Sashalenz\MonobankApi\RequestData\MerchantPaymInfo;
 use Sashalenz\MonobankApi\ResponseData\InvoiceResponse;
@@ -32,7 +32,7 @@ it('creates a minimal invoice and returns invoiceId and pageUrl', function () {
 });
 
 it('sends X-Token header with merchant token', function () {
-    Http::fake(function (\Illuminate\Http\Client\Request $request) {
+    Http::fake(function (Request $request) {
         expect($request->header('X-Token'))->toBe(['test-merchant-token']);
 
         return Http::response(['invoiceId' => 'abc', 'pageUrl' => 'https://pay.mbnk.biz/abc']);
