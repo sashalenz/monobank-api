@@ -14,8 +14,8 @@ class CurrencyResponse extends Data
         public int $currencyCodeB,
         #[WithCast(DateTimeInterfaceCast::class, format: 'timestamp')]
         public Carbon $date,
-        public float $rateSell,
-        public float $rateBuy,
-        public float $rateCross,
+        public ?float $rateSell,
+        public ?float $rateBuy,
+        public ?float $rateCross,
     ) {}
 }

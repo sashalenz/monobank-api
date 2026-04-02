@@ -28,10 +28,13 @@ abstract class BaseModel
 
     protected function getHeaders(): array
     {
-        return [
-            'User-Agent' => 'CRM',
-            'X-Token' => $this->token,
-        ];
+        $headers = ['User-Agent' => 'CRM'];
+
+        if ($this->token !== '') {
+            $headers['X-Token'] = $this->token;
+        }
+
+        return $headers;
     }
 
     protected function setParams(Data $data): self

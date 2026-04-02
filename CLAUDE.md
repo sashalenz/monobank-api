@@ -8,7 +8,7 @@ A lightweight Laravel package that wraps the [Monobank API](https://api.monobank
 
 - **Package**: `sashalenz/monobank-api`
 - **PHP**: `^8.2`
-- **Laravel**: `^10.0 || ^11.0 || ^12.0`
+- **Laravel**: `^10.0 || ^11.0 || ^12.0 || ^13.0`
 - **License**: MIT
 
 ## Development Commands
@@ -40,9 +40,9 @@ src/
 │   └── Requests/
 │       └── WebhookRequest.php     # Form request — validates webhook IP allowlist
 ├── RequestData/
-│   └── WebhookRequest.php         # Spatie Data DTO for outgoing webhook registration
+│   └── WebhookData.php            # Spatie Data DTO for outgoing webhook registration
 ├── ResponseData/
-│   ├── CurrencyResponse.php       # Exchange rate DTO
+│   ├── CurrencyResponse.php       # Exchange rate DTO (rateSell/rateBuy/rateCross are ?float)
 │   ├── ClientInfoResponse.php     # Client info + Account + Jar collections
 │   └── StatementResponse.php      # Transaction statement DTO
 ├── Types/
@@ -93,6 +93,7 @@ Key `BaseModel` internals:
 - `setParams(Data $data)` — attaches a Spatie Data DTO as request params
 - `validate(array $rules)` — runs Laravel Validator; throws `MonobankApiException` on failure
 - `get()` / `post()` — final methods that dispatch the `Request` and return a `Collection`
+- `getHeaders()` — includes `X-Token` header **only** when a token has been set
 
 ### HTTP Layer (`Request.php`)
 - **Timeout**: 10 seconds
@@ -106,11 +107,16 @@ Key `BaseModel` internals:
 - Use `::from(Collection)` for single objects, `::collect(Collection)` for lists
 - `#[DataCollectionOf(ClassName::class)]` attribute for typed nested collections
 - `#[WithCast(...)]` attribute for type coercion (e.g., Unix timestamp → Carbon)
+- `CurrencyResponse` rate fields (`rateSell`, `rateBuy`, `rateCross`) are `?float` — the Monobank API returns either a buy/sell pair **or** a cross rate, never all three
+
+### Request DTOs
+- `RequestData/WebhookData` — DTO for registering a webhook URL (outgoing POST body)
+- Do **not** confuse with `Http/Requests/WebhookRequest` (Laravel FormRequest for incoming webhooks)
 
 ### Webhook Flow
 1. Monobank POSTs to the route registered in `routes/web.php` (key: `MONOBANK_WEBHOOK_KEY`)
 2. `WebhookRequest` form request validates the source IP against `MONOBANK_WEBHOOK_IPS`
-3. `WebhookController` receives the validated payload and logs it via `info()`
+3. `WebhookController` receives the validated payload and logs it via `logger()->info()`
 
 ## Configuration
 
@@ -130,13 +136,12 @@ Published via `php artisan vendor:publish`. Key environment variables:
 - **Naming**: classes PascalCase, methods camelCase, no abbreviations
 - **No debug functions** — `dd()`, `dump()`, `ray()` are banned (enforced by `ArchTest`)
 - **Exceptions** — always throw `MonobankApiException`; document with `@throws` PHPDoc
-- **No `is_null(x)` when `$x === null` is clearer** — follow existing style in the file
 - **Fluent methods** return `self`; terminal methods return typed values (`Collection`, DTO, `bool`)
 - **Conditionable trait** — use `->when()` for conditional branching in builders
 
 ## Testing
 
-Tests use [Pest PHP v3](https://pestphp.com/) with Orchestra Testbench for Laravel integration.
+Tests use [Pest PHP v4](https://pestphp.com/) (requires PHP 8.3+) with Orchestra Testbench for Laravel integration.
 
 ```bash
 composer test              # Run all tests
@@ -156,11 +161,30 @@ GitHub Actions workflows in `.github/workflows/`:
 
 | Workflow | Trigger | What it does |
 |---|---|---|
-| `run-tests.yml` | push/PR | Pest tests on PHP 8.3/8.4 × Laravel 10/11 matrix |
+| `run-tests.yml` | push/PR | Pest tests on PHP 8.3/8.4 × Laravel 10/11/12 matrix |
 | `phpstan.yml` | push (PHP files) | PHPStan level 5 static analysis |
 | `fix-php-code-style-issues.yml` | push | Auto-runs Pint and commits fixes |
 | `update-changelog.yml` | release | Updates CHANGELOG.md |
 | `dependabot-auto-merge.yml` | Dependabot PRs | Auto-merges minor/patch updates |
+
+### Test Matrix
+
+| PHP | Laravel | Testbench | Stability |
+|---|---|---|---|
+| 8.3, 8.4 | 12.* | 10.* | prefer-lowest, prefer-stable |
+| 8.3, 8.4 | 11.* | 9.* | prefer-lowest, prefer-stable |
+| 8.3, 8.4 | 10.* | 8.* | prefer-lowest, prefer-stable |
+
+## Key Package Versions
+
+| Package | Version |
+|---|---|
+| `spatie/laravel-data` | `^4.20` |
+| `spatie/laravel-package-tools` | `^1.93` |
+| `larastan/larastan` | `^3.0` |
+| `pestphp/pest` | `^4.0` |
+| `orchestra/testbench` | `^8.22 \|\| ^9.0 \|\| ^10.0` |
+| `laravel/pint` | `^1.29` |
 
 ## Adding New API Endpoints
 
@@ -180,9 +204,9 @@ Follow this pattern:
 
 ```php
 // In Personal.php
-public function newEndpoint(string $param): SomeResponse
+public function newEndpoint(string $param): Collection
 {
-    return SomeResponse::from(
+    return SomeResponse::collect(
         $this
             ->setMethod('new-endpoint')
             ->setMethod($param)
