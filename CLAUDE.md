@@ -28,10 +28,12 @@ src/
 ├── ApiModels/
 │   ├── BaseModel.php              # Abstract base — HTTP, caching, proxy, validation
 │   ├── Bank.php                   # Public API endpoints (no auth required)
-│   └── Personal.php               # Authenticated API endpoints (token required)
+│   ├── Personal.php               # Personal banking endpoints (token required)
+│   └── Acquiring.php              # Merchant acquiring endpoints (token required)
 ├── Enums/
 │   ├── AccountType.php            # black, white, platinum, iron, fop, yellow
-│   └── CashbackType.php           # None, UAH, Miles
+│   ├── CashbackType.php           # None, UAH, Miles
+│   └── PaymentType.php            # debit, hold
 ├── Exceptions/
 │   └── MonobankApiException.php   # Single custom exception for all API errors
 ├── Http/
@@ -40,15 +42,21 @@ src/
 │   └── Requests/
 │       └── WebhookRequest.php     # Form request — validates webhook IP allowlist
 ├── RequestData/
-│   └── WebhookData.php            # Spatie Data DTO for outgoing webhook registration
+│   ├── WebhookData.php            # DTO for registering a personal webhook URL
+│   ├── InvoiceData.php            # DTO for POST /api/merchant/invoice/create
+│   ├── MerchantPaymInfo.php       # Nested DTO — order/basket info inside InvoiceData
+│   ├── BasketItem.php             # Nested DTO — single basket item inside MerchantPaymInfo
+│   ├── Discount.php               # Nested DTO — discount entry (type, mode, value)
+│   └── SaveCardData.php           # Nested DTO — card tokenization options
 ├── ResponseData/
 │   ├── CurrencyResponse.php       # Exchange rate DTO (rateSell/rateBuy/rateCross are ?float)
 │   ├── ClientInfoResponse.php     # Client info + Account + Jar collections
-│   └── StatementResponse.php      # Transaction statement DTO
+│   ├── StatementResponse.php      # Transaction statement DTO
+│   └── InvoiceResponse.php        # Acquiring invoice response (invoiceId, pageUrl)
 ├── Types/
 │   ├── Account.php                # Account type (balance, IBAN, cards, limits)
 │   └── Jar.php                    # Jar/savings goal type
-├── MonobankApi.php                # Entry-point facade: MonobankApi::bank() / ::personal()
+├── MonobankApi.php                # Entry-point facade: bank() / personal() / acquiring()
 ├── MonobankApiServiceProvider.php # Laravel service provider (registers config + route)
 └── Request.php                    # HTTP layer — timeout, retries, caching, proxy
 
@@ -73,9 +81,10 @@ tests/
 ## Architecture Patterns
 
 ### Entry Point
-`MonobankApi` is a thin static facade with two factory methods:
+`MonobankApi` is a thin static facade with three factory methods:
 - `MonobankApi::bank()` — returns a `Bank` instance for public (unauthenticated) endpoints
-- `MonobankApi::personal()` — returns a `Personal` instance for authenticated endpoints
+- `MonobankApi::personal()` — returns a `Personal` instance for personal banking endpoints
+- `MonobankApi::acquiring()` — returns an `Acquiring` instance for merchant acquiring endpoints
 
 ### BaseModel (Fluent Builder)
 All API model classes extend `BaseModel`, which provides a chainable builder interface:
@@ -110,8 +119,13 @@ Key `BaseModel` internals:
 - `CurrencyResponse` rate fields (`rateSell`, `rateBuy`, `rateCross`) are `?float` — the Monobank API returns either a buy/sell pair **or** a cross rate, never all three
 
 ### Request DTOs
-- `RequestData/WebhookData` — DTO for registering a webhook URL (outgoing POST body)
-- Do **not** confuse with `Http/Requests/WebhookRequest` (Laravel FormRequest for incoming webhooks)
+- `RequestData/WebhookData` — DTO for registering a personal webhook URL
+- `RequestData/InvoiceData` — main DTO for `POST /api/merchant/invoice/create`; contains nested DTOs `MerchantPaymInfo`, `SaveCardData`
+- `RequestData/MerchantPaymInfo` — order details with optional `DataCollection<BasketItem>` and `DataCollection<Discount>`
+- `RequestData/BasketItem` — single cart item; has optional `DataCollection<Discount>` for item-level discounts
+- `RequestData/Discount` — reused for both order-level and item-level discounts (`type`, `mode`, `value`)
+- `RequestData/SaveCardData` — card tokenisation options (`saveCard`, `walletId`)
+- Do **not** confuse `RequestData/WebhookData` with `Http/Requests/WebhookRequest` (that is a Laravel FormRequest for *incoming* webhooks)
 
 ### Webhook Flow
 1. Monobank POSTs to the route registered in `routes/web.php` (key: `MONOBANK_WEBHOOK_KEY`)
@@ -161,7 +175,7 @@ GitHub Actions workflows in `.github/workflows/`:
 
 | Workflow | Trigger | What it does |
 |---|---|---|
-| `run-tests.yml` | push/PR | Pest tests on PHP 8.3/8.4 × Laravel 10/11/12 matrix |
+| `run-tests.yml` | push/PR | Pest v4 tests on PHP 8.3/8.4 × Laravel 10/11/12 matrix |
 | `phpstan.yml` | push (PHP files) | PHPStan level 5 static analysis |
 | `fix-php-code-style-issues.yml` | push | Auto-runs Pint and commits fixes |
 | `update-changelog.yml` | release | Updates CHANGELOG.md |
@@ -200,10 +214,10 @@ Follow this pattern:
 8. Throw `MonobankApiException` for all error cases; document with `@throws`
 9. Write a corresponding Pest test
 
-**Example skeleton:**
+**Example skeleton — GET list:**
 
 ```php
-// In Personal.php
+// In Personal.php or Bank.php
 public function newEndpoint(string $param): Collection
 {
     return SomeResponse::collect(
@@ -214,3 +228,28 @@ public function newEndpoint(string $param): Collection
     );
 }
 ```
+
+**Example skeleton — POST (acquiring style):**
+
+```php
+// In Acquiring.php
+public function doSomething(SomeRequestData $data): SomeResponse
+{
+    return SomeResponse::from(
+        $this
+            ->setMethod('resource')
+            ->setMethod('action')
+            ->setParams($data)
+            ->post()
+    );
+}
+```
+
+### Acquiring API Notes
+
+- **Base path**: `api/merchant` (maps to `https://api.monobank.ua/api/merchant/...`)
+- **Auth**: same `X-Token` header, but uses a **merchant** token (not personal)
+- **`InvoiceData::amount`** is in minimum currency units (kopecks) — e.g. `4200` = 42.00 UAH
+- **`InvoiceData::ccy`** defaults to `980` (UAH) on the API side when omitted
+- **`InvoiceData::paymentType`** — use `PaymentType::DEBIT` (charge immediately) or `PaymentType::HOLD` (authorise and capture later)
+- **Nullable rate floats in `CurrencyResponse`** — the API returns either `rateSell`/`rateBuy` **or** `rateCross`, never all three; all three fields are `?float`
