@@ -6,7 +6,6 @@ use Sashalenz\MonobankApi\Enums\PaymentType;
 use Sashalenz\MonobankApi\Exceptions\MonobankApiException;
 use Sashalenz\MonobankApi\MonobankApi;
 use Sashalenz\MonobankApi\RequestData\InvoiceData;
-use Sashalenz\MonobankApi\RequestData\MerchantPaymInfo;
 use Sashalenz\MonobankApi\ResponseData\InvoiceResponse;
 
 beforeEach(function () {
