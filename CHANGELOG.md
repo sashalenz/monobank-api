@@ -2,6 +2,10 @@
 
 All notable changes to `monobank-api` will be documented in this file.
 
+## 2.0.1 - 2026-04-30
+
+**Full Changelog**: https://github.com/sashalenz/monobank-api/compare/2.0.0...2.0.1
+
 ## 2.0.0 - 2026-04-30
 
 ### What's Changed
