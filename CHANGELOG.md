@@ -2,6 +2,15 @@
 
 All notable changes to `monobank-api` will be documented in this file.
 
+## 2.0.0 - 2026-04-30
+
+### What's Changed
+
+* Bump dependabot/fetch-metadata from 2.4.0 to 2.5.0 by @dependabot[bot] in https://github.com/sashalenz/monobank-api/pull/13
+* Add CLAUDE.md with codebase documentation for AI assistants by @sashalenz in https://github.com/sashalenz/monobank-api/pull/16
+
+**Full Changelog**: https://github.com/sashalenz/monobank-api/compare/1.3.1...2.0.0
+
 ## 1.3.0 - 2025-06-02
 
 ### What's Changed
