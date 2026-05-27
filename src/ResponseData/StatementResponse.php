@@ -11,7 +11,10 @@ class StatementResponse extends Data
 {
     public function __construct(
         public string $id,
-        #[WithCast(DateTimeInterfaceCast::class, format: 'L')]
+        // Monobank повертає time як Unix-секунди (int). Format 'U' — стандартний
+        // PHP date-format для Unix timestamp; 'L' раніше було помилкою (це формат
+        // прапора leap year, він не парсить timestamp).
+        #[WithCast(DateTimeInterfaceCast::class, format: 'U')]
         public Carbon $time,
         public string $description,
         public int $mcc,
