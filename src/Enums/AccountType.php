@@ -10,4 +10,6 @@ enum AccountType: string
     case IRON = 'iron';
     case FOP = 'fop';
     case YELLOW = 'yellow';
+    case EAID = 'eAid';
+    case MADE_IN_UKRAINE = 'madeInUkraine';
 }

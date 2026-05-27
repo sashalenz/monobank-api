@@ -12,5 +12,7 @@ it('contains expected account types', function () {
         'iron',
         'fop',
         'yellow',
+        'eAid',
+        'madeInUkraine',
     ]);
 });

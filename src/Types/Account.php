@@ -15,8 +15,10 @@ class Account extends Data
         public int $creditLimit,
         public AccountType $type,
         public int $currencyCode,
-        public CashbackType $cashbackType,
-        public array $maskedPan,
-        public string $iban,
+        // Optional — Monobank не повертає cashbackType для деяких типів рахунків
+        // (наприклад type=fop). Default None щоб DTO-конструкція не падала.
+        public CashbackType $cashbackType = CashbackType::NONE,
+        public array $maskedPan = [],
+        public string $iban = '',
     ) {}
 }

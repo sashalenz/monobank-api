@@ -17,7 +17,8 @@ class ClientInfoResponse extends Data
         public string $permissions,
         #[DataCollectionOf(Account::class)]
         public DataCollection $accounts,
+        // Optional — деякі API responses не містять jars-ключ взагалі.
         #[DataCollectionOf(Jar::class)]
-        public DataCollection $jars,
+        public ?DataCollection $jars = null,
     ) {}
 }

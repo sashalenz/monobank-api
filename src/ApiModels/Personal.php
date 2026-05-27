@@ -25,6 +25,9 @@ class Personal extends BaseModel
     }
 
     /**
+     * Реєструє webhook URL у Monobank для статементів. Monobank приймає
+     * `POST /personal/webhook` з body `{"webHookUrl": "..."}` — GET повертає 405.
+     *
      * @throws MonobankApiException
      */
     public function webhook(string $webHookUrl): bool
@@ -34,7 +37,7 @@ class Personal extends BaseModel
             ->setParams(new WebhookData(
                 webHookUrl: $webHookUrl
             ))
-            ->request()
+            ->request(isPost: true)
             ->getStatusCode() === 200;
     }
 
