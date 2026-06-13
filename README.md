@@ -68,6 +68,21 @@ Configure a webhook to receive transaction updates.
 MonobankApi::personal()->token($token)->webhook('https://example.com/monobank');
 ```
 
+#### Webhook route configuration
+The package registers two inbound webhook routes (`POST {prefix}/{webhook_key}` and
+`POST {prefix}/{acquiring_webhook_key}`). Where and how they mount is fully
+configurable (Livewire-style) — set these in `config/monobank-api.php` or via env:
+
+| Config / env | Default | Purpose |
+| --- | --- | --- |
+| `webhook_routes_enabled` / `MONOBANK_WEBHOOK_ROUTES_ENABLED` | `true` | Set `false` to skip route registration entirely (e.g. when you handle the webhook elsewhere). |
+| `webhook_domain` / `MONOBANK_WEBHOOK_DOMAIN` | `null` (any host) | Constrain the routes to a domain. |
+| `webhook_prefix` / `MONOBANK_WEBHOOK_PREFIX` | `monobank-api` | URL path prefix. |
+| `webhook_middleware` / `MONOBANK_WEBHOOK_MIDDLEWARE` | `[]` | Middleware/guards (env = comma-separated list). |
+| `webhook_key` / `acquiring_webhook_key` | `webhook` / `acquiring-webhook` | Path segment per controller. |
+
+All defaults preserve the previous behaviour.
+
 #### Account statement
 Fetch the statement for an account within a given period.
 
